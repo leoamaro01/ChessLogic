@@ -1,49 +1,5 @@
-using static PixelDashCore.ChessLogic.Board;
-
 namespace PixelDashCore.ChessLogic;
 
-public enum PieceType
-{
-    None = -1, Pawn, Rook, Knight, Bishop, Queen, King
-}
-public struct Piece
-{
-    public PieceType pieceType;
-    public bool isWhite;
-
-    public Piece(PieceType pieceType, bool isWhite = true)
-    {
-        this.pieceType = pieceType;
-        this.isWhite = isWhite;
-    }
-
-    public static Piece None => new Piece(PieceType.None);
-}
-public struct MoveData
-{
-    public string algebraic;
-    public (int x, int y) from;
-    public (int x, int y) to;
-    public PieceType promotion;
-
-    public MoveData(string algebraic, (int x, int y) from, (int x, int y) to, PieceType promotion = PieceType.None)
-    {
-        this.algebraic = algebraic;
-        this.from = from;
-        this.to = to;
-        this.promotion = promotion;
-    }
-    public MoveData((int x, int y) from, (int x, int y) to, PieceType promotion = PieceType.None)
-    {
-        this.algebraic = CoordsToAlgebraic(from) + CoordsToAlgebraic(to);
-        if (promotion != PieceType.None)
-            this.algebraic += PieceTypeToAlgebraicChar(promotion);
-
-        this.from = from;
-        this.to = to;
-        this.promotion = promotion;
-    }
-}
 public class Board
 {
     const string standardWhiteFormation = "12345321";
@@ -120,6 +76,7 @@ public class Board
             return new MoveData[] { };
 
         var movesCoords = new List<(int x, int y)>();
+        List<MoveData> possibleMoves = new List<MoveData>();
 
         //Moves any piece to a point ignoring anything in between, if there is a piece in that point it will include the killing move if possible
         var pointMover = (int xChange, int yChange) =>
@@ -162,26 +119,76 @@ public class Board
             case PieceType.Pawn:
                 //The only change for white or black pawns is the vertical forward
                 int forwardY = piece.isWhite ? pieceCoords.y + 1 : pieceCoords.y - 1;
+                int forwardYPlus2 = piece.isWhite ? pieceCoords.y + 2 : pieceCoords.y - 2;
 
                 if (includeKills <= 0)
                 {
                     (int x, int y) forward = (pieceCoords.x, forwardY);
                     if (GetPieceAt(forward).pieceType == PieceType.None)
                         movesCoords.Add(forward);
+
+                    //Initial move
+                    if ((piece.isWhite && pieceCoords.y == 1) || (!piece.isWhite && pieceCoords.y == 6))
+                    {
+                        (int x, int y) forwardPlus2 = (pieceCoords.x, forwardYPlus2);
+                        if (GetPieceAt(forwardPlus2).pieceType == PieceType.None && GetPieceAt(forward).pieceType == PieceType.None)
+                            movesCoords.Add(forwardPlus2);
+                    }
                 }
 
                 if (includeKills >= 0)
                 {
-                    (int x, int y) diagRight = (pieceCoords.x + 1, forwardY);
-                    (int x, int y) diagLeft = (pieceCoords.x - 1, forwardY);
+                    var diagRight = (pieceCoords.x + 1, forwardY);
+                    var diagLeft = (pieceCoords.x - 1, forwardY);
+                    var left = (pieceCoords.x - 1, pieceCoords.y);
+                    var right = (pieceCoords.x + 1, pieceCoords.y);
 
                     if (GetPieceAt(diagRight).pieceType != PieceType.None)
                         movesCoords.Add(diagRight);
+                    else if (pieceCoords.y == (piece.isWhite ? 4 : 3))
+                    {
+                        /*
+                        Unreadable as fuck. Basically states that if there is a pawn on this
+                        pawn's side, and the last move was made to that spot, and that last move
+                        was made from the opponent's pawn row, en-passant can be performed.
+                        */
+                        if (GetPieceAt(right).pieceType == PieceType.Pawn
+                        && moveHistory[moveHistory.Count - 1].to == right
+                        && moveHistory[moveHistory.Count - 1].from.y ==
+                        (piece.isWhite ? 6 : 1))
+                        {
+                            possibleMoves.Add(new MoveData(pieceCoords, diagRight, right));
+                        }
+                    }
 
                     if (GetPieceAt(diagLeft).pieceType != PieceType.None)
                         movesCoords.Add(diagLeft);
+                    else if (pieceCoords.y == (piece.isWhite ? 4 : 3))
+                    {
+                        /*
+                        Unreadable as fuck. Basically states that if there is a pawn on this
+                        pawn's side, and the last move was made to that spot, and that last move
+                        was made from the opponent's pawn row, en-passant can be performed.
+                        */
+                        if (GetPieceAt(left).pieceType == PieceType.Pawn
+                        && moveHistory[moveHistory.Count - 1].to == left
+                        && moveHistory[moveHistory.Count - 1].from.y ==
+                        (piece.isWhite ? 6 : 1))
+                        {
+                            possibleMoves.Add(new MoveData(pieceCoords, diagLeft, left));
+                        }
+                    }
                 }
-                //TODO: en-passant
+
+                if (movesCoords.Count > 0 && movesCoords[0].y == (piece.isWhite ? 7 : 0))
+                {
+                    string promotionPieces = "qrbn";
+                    foreach (var coord in movesCoords)
+                        foreach (char prom in promotionPieces)
+                            possibleMoves.Add(new MoveData(pieceCoords, coord, promotion: AlgebraicCharToPieceType(prom)));
+
+                    movesCoords.Clear();
+                }
                 break;
             case PieceType.Bishop:
                 //Diagonal Up Right
@@ -242,24 +249,70 @@ public class Board
                 pointMover(0, -1);
                 pointMover(-1, -1);
 
-                //TODO: Castling
+                (int x, int y) kingCoords = (4, piece.isWhite ? 0 : 7);
+                if (pieceCoords == kingCoords)
+                {
+                    //Kingside
+                    (int x, int y) kingRookCoods = (7, kingCoords.y);
+                    if (GetPieceAt(kingRookCoods).pieceType == PieceType.Rook)
+                    {
+                        //Check history to see if either the king or the rook has moved
+                        bool moved = false;
+                        foreach (var move in moveHistory)
+                            if (move.from == kingCoords && move.from == kingRookCoods)
+                            {
+                                moved = true;
+                                break;
+                            }
+                        if (!moved)
+                        {
+                            //Check for pieces in between
+                            bool foundPiece = false;
+                            for (int x = 5; x < 7; x++)
+                                if (GetPieceAt((x, kingCoords.y)).pieceType != PieceType.None)
+                                {
+                                    foundPiece = true;
+                                    break;
+                                }
+                            if (!foundPiece)
+                            {
+                                movesCoords.Add((6, kingCoords.y));
+                            }
+                        }
+                    }
+                    //Queenside
+                    (int x, int y) queenRookCoords = (0, kingCoords.y);
+                    if (GetPieceAt(queenRookCoords).pieceType == PieceType.Rook)
+                    {
+                        //Check history to see if either the king or the rook has moved
+                        bool moved = false;
+                        foreach (var move in moveHistory)
+                            if (move.from == kingCoords && move.from == queenRookCoords)
+                            {
+                                moved = true;
+                                break;
+                            }
+                        if (!moved)
+                        {
+                            //Check for pieces in between
+                            bool foundPiece = false;
+                            for (int x = 1; x < 4; x++)
+                                if (GetPieceAt((x, kingCoords.y)).pieceType != PieceType.None)
+                                {
+                                    foundPiece = true;
+                                    break;
+                                }
+                            if (!foundPiece)
+                            {
+                                movesCoords.Add((2, kingCoords.y));
+                            }
+                        }
+                    }
+                }
                 break;
         }
 
-        if (movesCoords.Count == 0)
-            return new MoveData[] { };
-
-        List<MoveData> possibleMoves = new List<MoveData>();
-        if (piece.pieceType == PieceType.Pawn && movesCoords[0].y == (piece.isWhite ? 7 : 0))
-        {
-            string promotionPieces = "qrbn";
-            foreach (var coord in movesCoords)
-            {
-                foreach (char prom in promotionPieces)
-                    possibleMoves.Add(new MoveData(pieceCoords, coord, AlgebraicCharToPieceType(prom)));
-            }
-        }
-        else
+        if (movesCoords.Count != 0)
             possibleMoves.AddRange(movesCoords.Select(c => new MoveData(pieceCoords, c)));
 
         return possibleMoves.Where(data => !InCheckAfterMove(data, piece.isWhite)).ToArray();
@@ -335,11 +388,17 @@ public class Board
     }
     public void MakeMove(MoveData move)
     {
+        //TODO Special cases
+        //En Passant
+        //Castling
         pieces[move.to.x, move.to.y] = GetPieceAt(move.from);
         pieces[move.from.x, move.from.y] = Piece.None;
 
         if (move.promotion != PieceType.None)
             pieces[move.to.x, move.to.y].pieceType = move.promotion;
+
+        if (move.specialTarget != null)
+            pieces[move.specialTarget.Value.x, move.specialTarget.Value.y].pieceType = PieceType.None;
 
         moveHistory.Add(move);
     }
@@ -440,7 +499,7 @@ public class Board
             algebraic,
             (coords[0], coords[1]),
             (coords[2], coords[3]),
-            promotion);
+            promotion: promotion);
     }
     public static PieceType AlgebraicCharToPieceType(char alg)
     {
