@@ -388,10 +388,53 @@ public class Board
     }
     public void MakeMove(MoveData move)
     {
-        //TODO Special cases
+        Piece source = GetPieceAt(move.from);
         //En Passant
+        if (move.specialTarget == null)
+        {
+            //The program asks if basic en passant conditions are met, and it's
+            //up to the user to use the library responsibly, since a fake invalid
+            //en passant can be forced.
+            if (source.pieceType == PieceType.Pawn
+            && GetPieceAt(move.to).pieceType == PieceType.None
+            && move.from.x != move.to.x)
+            {
+                (int x, int y) enPassantTarget = (move.to.x, move.from.y);
+                if (GetPieceAt(enPassantTarget).pieceType == PieceType.Pawn)
+                {
+                    pieces[move.to.x, move.to.y] = GetPieceAt(move.from);
+                    pieces[enPassantTarget.x, enPassantTarget.y] = Piece.None;
+                    move.specialTarget = enPassantTarget;
+
+                    moveHistory.Add(move);
+                    return;
+                }
+            }
+        }
         //Castling
-        pieces[move.to.x, move.to.y] = GetPieceAt(move.from);
+        //Again, checking for advanced castling conditions is not the focus of this
+        //program, it expects responsable usage, so castling *can* be forced with
+        //dissastrous consecuences.
+        if (source.pieceType == PieceType.King)
+        {
+            if (Math.Abs(move.to.x - move.from.x) == 2)
+            {
+                (int x, int y) rookCoords = (Math.Clamp((move.to.x - move.from.x) * 4, 0, 7), move.from.y);
+
+                Piece rook = GetPieceAt(rookCoords);
+                if (rook.pieceType == PieceType.Rook)
+                {
+                    pieces[move.to.x, move.to.y] = source;
+                    pieces[move.from.x, move.from.y] = Piece.None;
+                    pieces[(move.from.x + move.to.x) / 2, move.from.y] = rook;
+                    pieces[rookCoords.x, rookCoords.y] = Piece.None;
+
+                    moveHistory.Add(move);
+                    return;
+                }
+            }
+        }
+        pieces[move.to.x, move.to.y] = source;
         pieces[move.from.x, move.from.y] = Piece.None;
 
         if (move.promotion != PieceType.None)
