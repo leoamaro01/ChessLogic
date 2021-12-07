@@ -143,9 +143,9 @@ public class Board
                     var left = (pieceCoords.x - 1, pieceCoords.y);
                     var right = (pieceCoords.x + 1, pieceCoords.y);
 
-                    if (GetPieceAt(diagRight).pieceType != PieceType.None)
+                    if (IsValidPlace(diagRight) && GetPieceAt(diagRight).pieceType != PieceType.None)
                         movesCoords.Add(diagRight);
-                    else if (pieceCoords.y == (piece.isWhite ? 4 : 3))
+                    else if (IsValidPlace(diagRight) && pieceCoords.y == (piece.isWhite ? 4 : 3))
                     {
                         /*
                         Unreadable as fuck. Basically states that if there is a pawn on this
@@ -161,9 +161,9 @@ public class Board
                         }
                     }
 
-                    if (GetPieceAt(diagLeft).pieceType != PieceType.None)
+                    if (IsValidPlace(diagLeft) && GetPieceAt(diagLeft).pieceType != PieceType.None)
                         movesCoords.Add(diagLeft);
-                    else if (pieceCoords.y == (piece.isWhite ? 4 : 3))
+                    else if (IsValidPlace(diagLeft) && pieceCoords.y == (piece.isWhite ? 4 : 3))
                     {
                         /*
                         Unreadable as fuck. Basically states that if there is a pawn on this
