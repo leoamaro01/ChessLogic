@@ -328,6 +328,9 @@ public class Board
 
         return true;
     }
+    public bool IsInCheckMate(bool whiteTeam) =>
+        IsInCheck(whiteTeam) && IsInStalemate(whiteTeam);
+
     public bool IsInCheck(bool whiteKing)
     {
         (int x, int y)[] enemyPieces = GetAllPiecesCoords(p => p.isWhite != whiteKing);
