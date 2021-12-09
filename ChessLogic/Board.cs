@@ -11,8 +11,8 @@ public class Board
         pieces = new Piece[8, 8];
 
         //Copy source board
-        for (int x = 0; x < pieces.GetLength(0); x++)
-            for (int y = 0; y < pieces.GetLength(1); y++)
+        for (int x = 0; x < 8; x++)
+            for (int y = 0; y < 8; y++)
                 pieces[x, y] = other.pieces[x, y];
 
         moveHistory = new List<MoveData>(other.moveHistory);
@@ -35,21 +35,21 @@ public class Board
         pieces = new Piece[8, 8];
 
         //Setting white pieces
-        for (int i = 0; i < pieces.GetLength(0); i++)
+        for (int i = 0; i < 8; i++)
         {
             int value = int.Parse(standardWhiteFormation[i].ToString());
             pieces[i, 0] = new Piece((PieceType)value, true);
         }
-        for (int i = 0; i < pieces.GetLength(0); i++)
+        for (int i = 0; i < 8; i++)
             pieces[i, 1] = new Piece(PieceType.Pawn, true);
 
         //Setting black pieces
-        for (int i = 0; i < pieces.GetLength(0); i++)
+        for (int i = 0; i < 8; i++)
         {
             int value = int.Parse(standardWhiteFormation[i].ToString());
             pieces[i, 7] = new Piece((PieceType)value, false);
         }
-        for (int i = 0; i < pieces.GetLength(0); i++)
+        for (int i = 0; i < 8; i++)
             pieces[i, 6] = new Piece(PieceType.Pawn, false);
 
         for (int x = 0; x < 8; x++)
@@ -465,8 +465,8 @@ public class Board
 
         Board undone = new Board(undoneHistory);
 
-        for (int x = 0; x < pieces.GetLength(0); x++)
-            for (int y = 0; y < pieces.GetLength(1); x++)
+        for (int x = 0; x < 8; x++)
+            for (int y = 0; y < 8; x++)
                 pieces[x, y] = undone.pieces[x, y];
 
         moveHistory = new List<MoveData>(undoneHistory);
@@ -481,6 +481,11 @@ public class Board
             alg += PieceTypeToAlgebraicChar(data.promotion);
 
         return alg;
+    }
+    public static (int x, int y) AlgebraicToCoords(string algebraic)
+    {
+        //TODO: Make safe, add exceptions and such
+        return (AlgebraicCharToIndex(algebraic[0]), AlgebraicCharToIndex(algebraic[1]));
     }
     public static string CoordsToAlgebraic((int x, int y) coords)
     {
