@@ -59,6 +59,11 @@ class Program
                 System.Console.WriteLine("You can't move that piece!");
                 goto SELECT_PIECE;
             }
+            else if (b.GetPieceAt(coords).pieceType == PieceType.None)
+            {
+                System.Console.WriteLine("There is no piece in that spot.");
+                goto SELECT_PIECE;
+            }
 
             var possibleMoves = b.GetPossibleMoves(coords);
 
