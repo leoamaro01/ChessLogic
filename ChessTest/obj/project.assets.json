@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net6.0": {}
+    "net6.0": {
+      "ChessLogic/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v6.0",
+        "compile": {
+          "bin/placeholder/ChessLogic.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ChessLogic.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "ChessLogic/1.0.0": {
+      "type": "project",
+      "path": "../ChessLogic/ChessLogic.csproj",
+      "msbuildProject": "../ChessLogic/ChessLogic.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net6.0": []
+    "net6.0": [
+      "ChessLogic >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "/home/leoamaro01/.nuget/packages/": {}
@@ -31,7 +50,11 @@
       "frameworks": {
         "net6.0": {
           "targetAlias": "net6.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj": {
+              "projectPath": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

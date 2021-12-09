@@ -2,7 +2,7 @@ namespace PixelDashCore.ChessLogic;
 
 public struct Piece
 {
-    public PieceType pieceType;
+    public PieceType pieceType = PieceType.None;
     public bool isWhite;
 
     public Piece(PieceType pieceType, bool isWhite = true)

@@ -10,3 +10,15 @@
 /home/leoamaro01/Documents/repos/ChessLogic/obj/Debug/net6.0/ChessLogic.dll
 /home/leoamaro01/Documents/repos/ChessLogic/obj/Debug/net6.0/ref/ChessLogic.dll
 /home/leoamaro01/Documents/repos/ChessLogic/obj/Debug/net6.0/ChessLogic.pdb
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/bin/Debug/net6.0/ChessLogic.deps.json
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/bin/Debug/net6.0/ChessLogic.dll
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/bin/Debug/net6.0/ref/ChessLogic.dll
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/bin/Debug/net6.0/ChessLogic.pdb
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.csproj.AssemblyReference.cache
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.GeneratedMSBuildEditorConfig.editorconfig
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.AssemblyInfoInputs.cache
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.AssemblyInfo.cs
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.csproj.CoreCompileInputs.cache
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.dll
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ref/ChessLogic.dll
+/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.pdb

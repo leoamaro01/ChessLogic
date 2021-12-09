@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic.csproj",
+      "projectUniqueName": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj",
       "projectName": "ChessLogic",
-      "projectPath": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic.csproj",
+      "projectPath": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj",
       "packagesPath": "/home/leoamaro01/.nuget/packages/",
-      "outputPath": "/home/leoamaro01/Documents/repos/ChessLogic/obj/",
+      "outputPath": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/leoamaro01/.nuget/NuGet/NuGet.Config"

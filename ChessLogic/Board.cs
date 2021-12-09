@@ -52,6 +52,10 @@ public class Board
         for (int i = 0; i < pieces.GetLength(0); i++)
             pieces[i, 6] = new Piece(PieceType.Pawn, false);
 
+        for (int x = 0; x < 8; x++)
+            for (int y = 2; y < 6; y++)
+                pieces[x, y] = Piece.None;
+
         return pieces;
     }
     public Piece GetPieceAt((int x, int y) coords)
@@ -66,7 +70,9 @@ public class Board
     // > 0: Only include kills
     // = 0: Include kills as well as moves
     // < 0: Only include moves, no kills
-    public MoveData[] GetPossibleMoves((int x, int y) pieceCoords, int includeKills = 0)
+    // checkCheck:
+    // Whether to check if moves would leave their own team in check (useful to avoid creating infinite universes.)
+    public MoveData[] GetPossibleMoves((int x, int y) pieceCoords, int includeKills = 0, bool checkCheck = true)
     {
         if (!IsValidPlace(pieceCoords))
             throw new ArgumentOutOfRangeException("Invalid Coordinates. Axes must be 0-indexed and up to 7.");
@@ -315,7 +321,10 @@ public class Board
         if (movesCoords.Count != 0)
             possibleMoves.AddRange(movesCoords.Select(c => new MoveData(pieceCoords, c)));
 
-        return possibleMoves.Where(data => !InCheckAfterMove(data, piece.isWhite)).ToArray();
+        if (checkCheck)
+            return possibleMoves.Where(data => !InCheckAfterMove(data, piece.isWhite)).ToArray();
+        else
+            return possibleMoves.ToArray();
     }
     public bool IsInStalemate(bool whiteStalemate)
     {
@@ -333,12 +342,12 @@ public class Board
 
     public bool IsInCheck(bool whiteKing)
     {
-        (int x, int y)[] enemyPieces = GetAllPiecesCoords(p => p.isWhite != whiteKing);
+        (int x, int y)[] enemyPieces = GetAllPiecesCoords(p => (p.isWhite != whiteKing) && (p.pieceType != PieceType.None));
         (int x, int y) king = GetAllPiecesCoords(p => p.isWhite == whiteKing && p.pieceType == PieceType.King)[0];
 
         foreach (var piece in enemyPieces)
         {
-            var killMoves = GetPossibleMoves(piece, 1);
+            var killMoves = GetPossibleMoves(piece, 1, false);
 
             foreach (var kill in killMoves)
                 if (kill.to == king)
