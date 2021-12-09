@@ -1,43 +1,97 @@
 ﻿namespace PixelDashCore.ChessLogic.Tests;
 class Program
 {
-    const string HEADER = "┏━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┓";
-    const string FOOTER = "┗━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┛";
-    const string SEPARATOR = "┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫";
+    const string HEADER = "    A   B   C   D   E   F   G   H\n" +
+                          "  ┏━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┓";
+    const string FOOTER = "  ┗━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┛\n" +
+                          "    A   B   C   D   E   F   G   H";
+    const string SEPARATOR = "  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫";
 
     static void Main(string[] args)
     {
     NEWGAME:
         Board b = new Board();
+        bool whiteTurn = true;
 
         while (true)
         {
-            if (b.IsInCheckMate(true))
+            if (b.IsInCheckMate(whiteTurn))
             {
-                //Black win
+                System.Console.WriteLine("Checkmate! " +
+                    (!whiteTurn ? "White" : "Black") + " wins!");
+                System.Console.WriteLine("Press P to play again!");
+                if (Console.ReadKey(true).Key == ConsoleKey.P)
+                    goto NEWGAME;
+                else break;
             }
-            else if (b.IsInCheckMate(false))
+            else if (b.IsInCheck(whiteTurn))
             {
-                //White win
+                System.Console.WriteLine("Check!");
             }
-            else if (b.IsInStalemate(true))
+            else if (b.IsInStalemate(whiteTurn))
             {
-                //White stalemate
-            }
-            else if (b.IsInStalemate(false))
-            {
-                //Black stalemate
+                System.Console.WriteLine("Stalemate! IT'S A DRAW!");
+                System.Console.WriteLine("Press P to play again!");
+                if (Console.ReadKey(true).Key == ConsoleKey.P)
+                    goto NEWGAME;
+                else break;
             }
 
-            RenderUI(b);
+            RenderBoard(b);
 
-            Console.ReadLine();
+        SELECT_PIECE:
+            Console.WriteLine();
+            System.Console.Write("{0} Turn. Enter piece to move (ex. e4) or press \"U\" to undo:\n> ",
+                whiteTurn ? "White" : "Black");
+
+            char firstChar = Console.ReadKey().KeyChar;
+            if (firstChar == 'u')
+            {
+                b.UndoMove();
+                whiteTurn = !whiteTurn;
+                continue;
+            }
+
+            string piece = firstChar + (Console.ReadLine() ?? "");
+            (int x, int y) coords = Board.AlgebraicToCoords(piece);
+            if (b.GetPieceAt(coords).isWhite != whiteTurn)
+            {
+                System.Console.WriteLine("You can't move that piece!");
+                goto SELECT_PIECE;
+            }
+
+            var possibleMoves = b.GetPossibleMoves(coords);
+
+            System.Console.WriteLine();
+
+            if (possibleMoves.Length > 0)
+            {
+                System.Console.WriteLine("Select move to make:");
+
+                for (int i = 0; i < possibleMoves.Length; i++)
+                {
+                    System.Console.WriteLine($"{i} - {possibleMoves[i].algebraic}");
+                }
+            }
+            else
+                System.Console.WriteLine("That piece can't move!");
+            System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
+            System.Console.Write("> ");
+
+            int move = int.Parse(Console.ReadLine() ?? $"{possibleMoves.Length}");
+
+            if (move >= possibleMoves.Length || move < 0)
+                goto SELECT_PIECE;
+
+            b.MakeMove(possibleMoves[move]);
+
+            whiteTurn = !whiteTurn;
         }
     }
 
     const ConsoleColor whiteColor = ConsoleColor.White,
-                        blackColor = ConsoleColor.DarkYellow;
-    public static void RenderUI(Board board)
+                        blackColor = ConsoleColor.DarkGray;
+    public static void RenderBoard(Board board)
     {
         Console.Clear();
         Console.WriteLine();
@@ -50,7 +104,7 @@ class Program
             {
                 Console.WriteLine(SEPARATOR);
             }
-            Console.Write("┃");
+            Console.Write($"{y + 1} ┃");
             for (int x = 0; x < 8; x++)
             {
                 Piece piece = board.GetPieceAt((x, y));
@@ -62,8 +116,10 @@ class Program
                 Console.ForegroundColor = col;
                 Console.Write("┃");
             }
+            Console.Write($" {y + 1}");
             Console.WriteLine();
         }
         Console.WriteLine(FOOTER);
+        System.Console.WriteLine();
     }
 }
