@@ -466,7 +466,7 @@ public class Board
         Board undone = new Board(undoneHistory);
 
         for (int x = 0; x < 8; x++)
-            for (int y = 0; y < 8; x++)
+            for (int y = 0; y < 8; y++)
                 pieces[x, y] = undone.pieces[x, y];
 
         moveHistory = new List<MoveData>(undoneHistory);
