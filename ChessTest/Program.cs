@@ -41,18 +41,17 @@ class Program
 
         SELECT_PIECE:
             Console.WriteLine();
-            System.Console.Write("{0} Turn. Enter piece to move (ex. e4) or press \"U\" to undo:\n> ",
+            System.Console.Write("{0} Turn. Enter piece to move (ex. e4) or write \"UNDO\" to undo:\n> ",
                 whiteTurn ? "White" : "Black");
 
-            char firstChar = Console.ReadKey().KeyChar;
-            if (firstChar == 'u')
+            string piece = (Console.ReadLine() ?? "").ToLower();
+            if (piece == "undo")
             {
                 b.UndoMove();
                 whiteTurn = !whiteTurn;
                 continue;
             }
 
-            string piece = firstChar + (Console.ReadLine() ?? "");
             (int x, int y) coords = Board.AlgebraicToCoords(piece);
             if (b.GetPieceAt(coords).isWhite != whiteTurn)
             {
@@ -67,19 +66,21 @@ class Program
 
             var possibleMoves = b.GetPossibleMoves(coords);
 
+            if (possibleMoves.Length == 0)
+            {
+                System.Console.WriteLine("That piece can't move!");
+                goto SELECT_PIECE;
+            }
+
             System.Console.WriteLine();
 
-            if (possibleMoves.Length > 0)
-            {
-                System.Console.WriteLine("Select move to make:");
+            System.Console.WriteLine("Select move to make:");
 
-                for (int i = 0; i < possibleMoves.Length; i++)
-                {
-                    System.Console.WriteLine($"{i} - {possibleMoves[i].algebraic}");
-                }
+            for (int i = 0; i < possibleMoves.Length; i++)
+            {
+                System.Console.WriteLine($"{i} - {possibleMoves[i].algebraic}");
             }
-            else
-                System.Console.WriteLine("That piece can't move!");
+
             System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
             System.Console.Write("> ");
 

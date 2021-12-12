@@ -141,7 +141,6 @@ public class Board
                             movesCoords.Add(forwardPlus2);
                     }
                 }
-
                 if (includeKills >= 0)
                 {
                     var diagRight = (pieceCoords.x + 1, forwardY);
@@ -150,7 +149,10 @@ public class Board
                     var right = (pieceCoords.x + 1, pieceCoords.y);
 
                     if (IsValidPlace(diagRight) && GetPieceAt(diagRight).pieceType != PieceType.None)
-                        movesCoords.Add(diagRight);
+                    {
+                        if (GetPieceAt(diagRight).isWhite != piece.isWhite)
+                            movesCoords.Add(diagRight);
+                    }
                     else if (IsValidPlace(diagRight) && pieceCoords.y == (piece.isWhite ? 4 : 3))
                     {
                         /*
@@ -168,7 +170,10 @@ public class Board
                     }
 
                     if (IsValidPlace(diagLeft) && GetPieceAt(diagLeft).pieceType != PieceType.None)
-                        movesCoords.Add(diagLeft);
+                    {
+                        if (GetPieceAt(diagLeft).isWhite != piece.isWhite)
+                            movesCoords.Add(diagLeft);
+                    }
                     else if (IsValidPlace(diagLeft) && pieceCoords.y == (piece.isWhite ? 4 : 3))
                     {
                         /*
@@ -401,6 +406,12 @@ public class Board
     public void MakeMove(MoveData move)
     {
         Piece source = GetPieceAt(move.from);
+        Piece target = GetPieceAt(move.to);
+
+        if (target.pieceType == PieceType.King)
+            throw new InvalidMoveException("You can't kill a king.");
+        if (target.isWhite == source.isWhite)
+            throw new InvalidMoveException("You can't kill a piece of your own color.");
         //En Passant
         if (move.specialTarget == null)
         {
@@ -460,6 +471,7 @@ public class Board
     public void MakeMove(string algebraicMove) => MakeMove(AlgebraicToMoveData(algebraicMove));
     public void UndoMove(int movesToUndo = 1)
     {
+
         MoveData[] undoneHistory = new MoveData[moveHistory.Count - movesToUndo];
         moveHistory.CopyTo(0, undoneHistory, 0, undoneHistory.Length);
 
