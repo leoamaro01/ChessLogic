@@ -260,62 +260,67 @@ public class Board
                 pointMover(0, -1);
                 pointMover(-1, -1);
 
-                (int x, int y) kingCoords = (4, piece.isWhite ? 0 : 7);
-                if (pieceCoords == kingCoords)
+                if (includeKills <= 0)
                 {
-                    //Kingside
-                    (int x, int y) kingRookCoods = (7, kingCoords.y);
-                    if (GetPieceAt(kingRookCoods).pieceType == PieceType.Rook)
+                    (int x, int y) kingCoords = (4, piece.isWhite ? 0 : 7);
+                    if (pieceCoords == kingCoords && !IsInCheck(piece.isWhite))
                     {
-                        //Check history to see if either the king or the rook has moved
-                        bool moved = false;
-                        foreach (var move in moveHistory)
-                            if (move.from == kingCoords && move.from == kingRookCoods)
-                            {
-                                moved = true;
-                                break;
-                            }
-                        if (!moved)
+                        //Kingside
+                        (int x, int y) kingRookCoods = (7, kingCoords.y);
+                        if (GetPieceAt(kingRookCoods).pieceType == PieceType.Rook)
                         {
-                            //Check for pieces in between
-                            bool foundPiece = false;
-                            for (int x = 5; x < 7; x++)
-                                if (GetPieceAt((x, kingCoords.y)).pieceType != PieceType.None)
+                            //Check history to see if either the king or the rook has moved
+                            bool moved = false;
+                            foreach (var move in moveHistory)
+                                if (move.from == kingCoords && move.from == kingRookCoods)
                                 {
-                                    foundPiece = true;
+                                    moved = true;
                                     break;
                                 }
-                            if (!foundPiece)
+                            if (!moved)
                             {
-                                movesCoords.Add((6, kingCoords.y));
+                                //Check for pieces in between
+                                bool foundPiece = false;
+                                for (int x = 5; x < 7; x++)
+                                    if (GetPieceAt((x, kingCoords.y)).pieceType != PieceType.None)
+                                    {
+                                        foundPiece = true;
+                                        break;
+                                    }
+                                if (!foundPiece)
+                                {
+                                    if (!InCheckAfterMove(new MoveData(pieceCoords, (5, kingCoords.y)), piece.isWhite))
+                                        movesCoords.Add((6, kingCoords.y));
+                                }
                             }
                         }
-                    }
-                    //Queenside
-                    (int x, int y) queenRookCoords = (0, kingCoords.y);
-                    if (GetPieceAt(queenRookCoords).pieceType == PieceType.Rook)
-                    {
-                        //Check history to see if either the king or the rook has moved
-                        bool moved = false;
-                        foreach (var move in moveHistory)
-                            if (move.from == kingCoords && move.from == queenRookCoords)
-                            {
-                                moved = true;
-                                break;
-                            }
-                        if (!moved)
+                        //Queenside
+                        (int x, int y) queenRookCoords = (0, kingCoords.y);
+                        if (GetPieceAt(queenRookCoords).pieceType == PieceType.Rook)
                         {
-                            //Check for pieces in between
-                            bool foundPiece = false;
-                            for (int x = 1; x < 4; x++)
-                                if (GetPieceAt((x, kingCoords.y)).pieceType != PieceType.None)
+                            //Check history to see if either the king or the rook has moved
+                            bool moved = false;
+                            foreach (var move in moveHistory)
+                                if (move.from == kingCoords && move.from == queenRookCoords)
                                 {
-                                    foundPiece = true;
+                                    moved = true;
                                     break;
                                 }
-                            if (!foundPiece)
+                            if (!moved)
                             {
-                                movesCoords.Add((2, kingCoords.y));
+                                //Check for pieces in between
+                                bool foundPiece = false;
+                                for (int x = 1; x < 4; x++)
+                                    if (GetPieceAt((x, kingCoords.y)).pieceType != PieceType.None)
+                                    {
+                                        foundPiece = true;
+                                        break;
+                                    }
+                                if (!foundPiece)
+                                {
+                                    if (!InCheckAfterMove(new MoveData(pieceCoords, (3, kingCoords.y)), piece.isWhite))
+                                        movesCoords.Add((2, kingCoords.y));
+                                }
                             }
                         }
                     }
@@ -352,6 +357,7 @@ public class Board
 
         foreach (var piece in enemyPieces)
         {
+
             var killMoves = GetPossibleMoves(piece, 1, false);
 
             foreach (var kill in killMoves)
@@ -408,10 +414,13 @@ public class Board
         Piece source = GetPieceAt(move.from);
         Piece target = GetPieceAt(move.to);
 
-        if (target.pieceType == PieceType.King)
-            throw new InvalidMoveException("You can't kill a king.");
-        if (target.isWhite == source.isWhite)
-            throw new InvalidMoveException("You can't kill a piece of your own color.");
+        if (target.pieceType != PieceType.None)
+        {
+            if (target.pieceType == PieceType.King)
+                throw new InvalidMoveException("You can't kill a king.");
+            if (target.isWhite == source.isWhite)
+                throw new InvalidMoveException("You can't kill a piece of your own color.");
+        }
         //En Passant
         if (move.specialTarget == null)
         {

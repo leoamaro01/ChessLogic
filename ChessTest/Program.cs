@@ -9,12 +9,19 @@ class Program
 
     static void Main(string[] args)
     {
+        SinglePlayer();
+    }
+
+    static void SinglePlayer()
+    {
     NEWGAME:
         Board b = new Board();
         bool whiteTurn = true;
 
         while (true)
         {
+            RenderBoard(b);
+
             if (b.IsInCheckMate(whiteTurn))
             {
                 System.Console.WriteLine("Checkmate! " +
@@ -36,8 +43,6 @@ class Program
                     goto NEWGAME;
                 else break;
             }
-
-            RenderBoard(b);
 
         SELECT_PIECE:
             Console.WriteLine();
@@ -94,7 +99,6 @@ class Program
             whiteTurn = !whiteTurn;
         }
     }
-
     const ConsoleColor whiteColor = ConsoleColor.White,
                         blackColor = ConsoleColor.DarkGray;
     public static void RenderBoard(Board board)
