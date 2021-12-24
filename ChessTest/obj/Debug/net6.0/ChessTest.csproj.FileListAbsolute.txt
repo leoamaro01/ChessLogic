@@ -16,3 +16,5 @@
 /home/leoamaro01/Documents/repos/ChessLogic/ChessTest/obj/Debug/net6.0/ref/ChessTest.dll
 /home/leoamaro01/Documents/repos/ChessLogic/ChessTest/obj/Debug/net6.0/ChessTest.pdb
 /home/leoamaro01/Documents/repos/ChessLogic/ChessTest/obj/Debug/net6.0/ChessTest.genruntimeconfig.cache
+/home/leoamaro01/Documents/repos/ChessLogic/ChessTest/bin/Debug/net6.0/EasyTcp4.dll
+/home/leoamaro01/Documents/repos/ChessLogic/ChessTest/bin/Debug/net6.0/EasyTcp4.Actions.dll

@@ -2,6 +2,27 @@
   "version": 3,
   "targets": {
     "net6.0": {
+      "EasyTcp/4.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/EasyTcp4.dll": {}
+        },
+        "runtime": {
+          "lib/net5.0/EasyTcp4.dll": {}
+        }
+      },
+      "EasyTcp.Actions/4.0.1": {
+        "type": "package",
+        "dependencies": {
+          "EasyTcp": "4.0.0"
+        },
+        "compile": {
+          "lib/net5.0/EasyTcp4.Actions.dll": {}
+        },
+        "runtime": {
+          "lib/net5.0/EasyTcp4.Actions.dll": {}
+        }
+      },
       "ChessLogic/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v6.0",
@@ -15,6 +36,40 @@
     }
   },
   "libraries": {
+    "EasyTcp/4.0.0": {
+      "sha512": "I8O0wQLcFcNE+VV5A7qi6pJpsQEPVxUt+6VcI3b3mOwdO3vjo4Fa5uISTUdG7ltmtKG54pgqlhwBMUa8fkBqsA==",
+      "type": "package",
+      "path": "easytcp/4.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "easytcp.4.0.0.nupkg.sha512",
+        "easytcp.nuspec",
+        "lib/net5.0/EasyTcp4.dll",
+        "lib/net5.0/EasyTcp4.xml",
+        "lib/netcoreapp3.1/EasyTcp4.dll",
+        "lib/netcoreapp3.1/EasyTcp4.xml",
+        "lib/netstandard1.3/EasyTcp4.dll",
+        "lib/netstandard1.3/EasyTcp4.xml",
+        "lib/netstandard2.0/EasyTcp4.dll",
+        "lib/netstandard2.0/EasyTcp4.xml"
+      ]
+    },
+    "EasyTcp.Actions/4.0.1": {
+      "sha512": "U81UaCMkAGztGZUT80Az7GXi3b51OugjHzX5lniTlvEMvm1YsZuFa8d3MnmeTqp9iZSPZCBbBc/oA/DpPOb7MQ==",
+      "type": "package",
+      "path": "easytcp.actions/4.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "easytcp.actions.4.0.1.nupkg.sha512",
+        "easytcp.actions.nuspec",
+        "lib/net5.0/EasyTcp4.Actions.dll",
+        "lib/net5.0/EasyTcp4.Actions.xml",
+        "lib/netstandard2.0/EasyTcp4.Actions.dll",
+        "lib/netstandard2.0/EasyTcp4.Actions.xml"
+      ]
+    },
     "ChessLogic/1.0.0": {
       "type": "project",
       "path": "../ChessLogic/ChessLogic.csproj",
@@ -23,7 +78,9 @@
   },
   "projectFileDependencyGroups": {
     "net6.0": [
-      "ChessLogic >= 1.0.0"
+      "ChessLogic >= 1.0.0",
+      "EasyTcp >= 4.0.0",
+      "EasyTcp.Actions >= 4.0.1"
     ]
   },
   "packageFolders": {
@@ -66,6 +123,16 @@
     "frameworks": {
       "net6.0": {
         "targetAlias": "net6.0",
+        "dependencies": {
+          "EasyTcp": {
+            "target": "Package",
+            "version": "[4.0.0, )"
+          },
+          "EasyTcp.Actions": {
+            "target": "Package",
+            "version": "[4.0.1, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",

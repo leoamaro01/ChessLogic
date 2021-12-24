@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "aZflNnqb4UE/VeJ/hGR9cXEJZffE2RjEM78BE5wTsdX9H1k805yPMjPTdlsYJgso24s/sx+vgloAyvfFgCyMAA==",
+  "dgSpecHash": "pnm4qLxFzk+hAB+ADjVNofvKNjoEezfXKs/q2tvAdIS7Z2Sqs2FicYTgQbusvMlseWnMsbUo0fkCUiGAOAjorQ==",
   "success": true,
   "projectFilePath": "/home/leoamaro01/Documents/repos/ChessLogic/ChessTest/ChessTest.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/home/leoamaro01/.nuget/packages/easytcp/4.0.0/easytcp.4.0.0.nupkg.sha512",
+    "/home/leoamaro01/.nuget/packages/easytcp.actions/4.0.1/easytcp.actions.4.0.1.nupkg.sha512"
+  ],
   "logs": []
 }
