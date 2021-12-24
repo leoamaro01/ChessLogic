@@ -61,7 +61,10 @@ public class Board
     public Piece GetPieceAt((int x, int y) coords)
     {
         if (!IsValidPlace(coords))
-            throw new ArgumentOutOfRangeException("Invalid Coordinates. Axes must be 0-indexed and up to 7.");
+            throw new ArgumentOutOfRangeException(
+                paramName: nameof(coords),
+                actualValue: coords,
+                message: "Invalid Coordinates. Axes must be 0-indexed and up to 7.");
 
         return pieces[coords.x, coords.y];
     }
@@ -75,14 +78,17 @@ public class Board
     public MoveData[] GetPossibleMoves((int x, int y) pieceCoords, int includeKills = 0, bool checkCheck = true)
     {
         if (!IsValidPlace(pieceCoords))
-            throw new ArgumentOutOfRangeException("Invalid Coordinates. Axes must be 0-indexed and up to 7.");
+            throw new ArgumentOutOfRangeException(
+                            paramName: nameof(pieceCoords),
+                            actualValue: pieceCoords,
+                            message: "Invalid Coordinates. Axes must be 0-indexed and up to 7.");
 
         Piece piece = GetPieceAt(pieceCoords);
         if (piece.pieceType == PieceType.None)
-            return new MoveData[] { };
+            return Array.Empty<MoveData>();
 
         var movesCoords = new List<(int x, int y)>();
-        List<MoveData> possibleMoves = new List<MoveData>();
+        List<MoveData> possibleMoves = new();
 
         //Moves any piece to a point ignoring anything in between, if there is a piece in that point it will include the killing move if possible
         var pointMover = (int xChange, int yChange) =>
@@ -161,8 +167,8 @@ public class Board
                         was made from the opponent's pawn row, en-passant can be performed.
                         */
                         if (GetPieceAt(right).pieceType == PieceType.Pawn
-                        && moveHistory[moveHistory.Count - 1].to == right
-                        && moveHistory[moveHistory.Count - 1].from.y ==
+                        && moveHistory[^1].to == right
+                        && moveHistory[^1].from.y ==
                         (piece.isWhite ? 6 : 1))
                         {
                             possibleMoves.Add(new MoveData(pieceCoords, diagRight, right));
@@ -182,8 +188,8 @@ public class Board
                         was made from the opponent's pawn row, en-passant can be performed.
                         */
                         if (GetPieceAt(left).pieceType == PieceType.Pawn
-                        && moveHistory[moveHistory.Count - 1].to == left
-                        && moveHistory[moveHistory.Count - 1].from.y ==
+                        && moveHistory[^1].to == left
+                        && moveHistory[^1].from.y ==
                         (piece.isWhite ? 6 : 1))
                         {
                             possibleMoves.Add(new MoveData(pieceCoords, diagLeft, left));
@@ -369,7 +375,7 @@ public class Board
     }
     public bool InCheckAfterMove(MoveData move, bool whiteKing)
     {
-        Board copy = new Board(this);
+        Board copy = new(this);
 
         copy.MakeMove(move);
 
@@ -378,7 +384,7 @@ public class Board
     public Piece[] GetAllPieces() => GetAllPieces(p => true);
     public Piece[] GetAllPieces(Func<Piece, bool> filter)
     {
-        List<Piece> result = new List<Piece>();
+        List<Piece> result = new();
 
         for (int x = 0; x < 8; x++)
             for (int y = 0; y < 8; y++)
@@ -395,7 +401,7 @@ public class Board
     public (int x, int y)[] GetAllPiecesCoords() => GetAllPiecesCoords(p => true);
     public (int x, int y)[] GetAllPiecesCoords(Func<Piece, bool> filter)
     {
-        List<(int x, int y)> result = new List<(int x, int y)>();
+        List<(int x, int y)> result = new();
 
         for (int x = 0; x < 8; x++)
             for (int y = 0; y < 8; y++)
@@ -484,7 +490,7 @@ public class Board
         MoveData[] undoneHistory = new MoveData[moveHistory.Count - movesToUndo];
         moveHistory.CopyTo(0, undoneHistory, 0, undoneHistory.Length);
 
-        Board undone = new Board(undoneHistory);
+        Board undone = new(undoneHistory);
 
         for (int x = 0; x < 8; x++)
             for (int y = 0; y < 8; y++)
@@ -543,25 +549,16 @@ public class Board
         return alg;
     }
     public static char PieceTypeToAlgebraicChar(PieceType type)
+    => type switch
     {
-        switch (type)
-        {
-            case PieceType.Bishop:
-                return 'b';
-            case PieceType.Queen:
-                return 'q';
-            case PieceType.Rook:
-                return 'r';
-            case PieceType.Pawn:
-                return 'p';
-            case PieceType.Knight:
-                return 'n';
-            case PieceType.King:
-                return 'k';
-            default:
-                return ' ';
-        }
-    }
+        PieceType.Bishop => 'b',
+        PieceType.Queen => 'q',
+        PieceType.King => 'k',
+        PieceType.Pawn => 'p',
+        PieceType.Knight => 'n',
+        PieceType.Rook => 'r',
+        PieceType.None or _ => ' '
+    };
     public static MoveData AlgebraicToMoveData(string algebraic)
     {
         if (algebraic.Length < 4 || algebraic.Length > 5)
@@ -569,7 +566,7 @@ public class Board
 
         algebraic = algebraic.ToLower();
 
-        int[] coords = algebraic.Substring(0, 4).Select(c => AlgebraicCharToIndex(c)).ToArray();
+        int[] coords = algebraic[0..4].Select(c => AlgebraicCharToIndex(c)).ToArray();
         if (coords.Any(n => n == -1))
             throw new ArgumentException("Invalid algebraic expression");
 
@@ -583,57 +580,30 @@ public class Board
             promotion: promotion);
     }
     public static PieceType AlgebraicCharToPieceType(char alg)
+    => alg switch
     {
-        switch (alg)
-        {
-            case 'r':
-                return PieceType.Rook;
-            case 'n':
-                return PieceType.Knight;
-            case 'b':
-                return PieceType.Bishop;
-            case 'k':
-                return PieceType.King;
-            case 'q':
-                return PieceType.Queen;
-            case 'p':
-                return PieceType.Pawn;
-            default:
-                return PieceType.None;
-        }
-    }
+        'r' => PieceType.Rook,
+        'n' => PieceType.Knight,
+        'b' => PieceType.Bishop,
+        'k' => PieceType.King,
+        'q' => PieceType.Queen,
+        'p' => PieceType.Pawn,
+        _ => PieceType.None,
+    };
+
     public static int AlgebraicCharToIndex(char alg)
+    => alg switch
     {
-        switch (alg)
-        {
-            case 'a':
-            case '1':
-                return 0;
-            case 'b':
-            case '2':
-                return 1;
-            case 'c':
-            case '3':
-                return 2;
-            case 'd':
-            case '4':
-                return 3;
-            case 'e':
-            case '5':
-                return 4;
-            case 'f':
-            case '6':
-                return 5;
-            case 'g':
-            case '7':
-                return 6;
-            case 'h':
-            case '8':
-                return 7;
-            default:
-                return -1;
-        }
-    }
+        'a' or '1' => 0,
+        'b' or '2' => 1,
+        'c' or '3' => 2,
+        'd' or '4' => 3,
+        'e' or '5' => 4,
+        'f' or '6' => 5,
+        'g' or '7' => 6,
+        'h' or '8' => 7,
+        _ => -1
+    };
     public static bool IsValidPlace((int x, int y) place)
     => place.x >= 0 && place.x < 8 && place.y >= 0 && place.y < 8;
 }

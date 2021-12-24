@@ -11,5 +11,5 @@ public struct Piece
         this.isWhite = isWhite;
     }
 
-    public static Piece None => new Piece(PieceType.None);
+    public static Piece None => new(PieceType.None);
 }

@@ -15,7 +15,7 @@ class Program
                           "    A   B   C   D   E   F   G   H";
     const string SEPARATOR = "  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫";
 
-    static void Main(string[] args)
+    static void Main()
     {
         HostMultiplayer();
     }
@@ -25,7 +25,7 @@ class Program
         using var client = new EasyTcpClient();
         bool playing = false;
 
-        Board b = new Board();
+        Board b = new();
         bool whiteTurn = true;
         bool whitePlayer = false;
 
@@ -103,7 +103,7 @@ class Program
         EasyTcpClient? connectedClient = null;
         bool listening = true;
 
-        Board b = new Board();
+        Board b = new();
         bool whitePlayer = new Random().Next(0, 2) == 0;
         bool playing = false;
         bool whiteTurn = true;
@@ -228,8 +228,8 @@ class Program
             goto SELECT_PIECE;
 
         b.MakeMove(possibleMoves[move]);
-        var moveFrom = possibleMoves[move].from;
-        var moveTo = possibleMoves[move].to;
+        (int moveFromX, int moveFromY) = possibleMoves[move].from;
+        (int moveToX, int moveToY) = possibleMoves[move].to;
 
         byte[] data;
         if (possibleMoves[move].promotion == PieceType.None)
@@ -237,8 +237,8 @@ class Program
             data = new byte[]
            {
                 GeneralPacketCodes.MAKE_MOVE,
-                (byte)moveFrom.x, (byte)moveFrom.y,
-                (byte)moveTo.x,(byte)moveTo.y
+                (byte)moveFromX, (byte)moveFromY,
+                (byte)moveToX, (byte)moveToY
            };
         }
         else
@@ -246,8 +246,8 @@ class Program
             data = new byte[]
            {
                 GeneralPacketCodes.MAKE_MOVE,
-                (byte)moveFrom.x, (byte)moveFrom.y,
-                (byte)moveTo.x,(byte)moveTo.y,
+                (byte)moveFromX, (byte)moveFromY,
+                (byte)moveToX,(byte)moveToY,
                 (byte)possibleMoves[move].promotion
            };
         }
@@ -257,7 +257,7 @@ class Program
     static void SinglePlayer()
     {
     NEWGAME:
-        Board b = new Board();
+        Board b = new();
         bool whiteTurn = true;
 
         while (true)
