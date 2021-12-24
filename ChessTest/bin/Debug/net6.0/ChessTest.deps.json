@@ -8,10 +8,31 @@
     ".NETCoreApp,Version=v6.0": {
       "ChessTest/1.0.0": {
         "dependencies": {
-          "ChessLogic": "1.0.0"
+          "ChessLogic": "1.0.0",
+          "EasyTcp": "4.0.0",
+          "EasyTcp.Actions": "4.0.1"
         },
         "runtime": {
           "ChessTest.dll": {}
+        }
+      },
+      "EasyTcp/4.0.0": {
+        "runtime": {
+          "lib/net5.0/EasyTcp4.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "EasyTcp.Actions/4.0.1": {
+        "dependencies": {
+          "EasyTcp": "4.0.0"
+        },
+        "runtime": {
+          "lib/net5.0/EasyTcp4.Actions.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       },
       "ChessLogic/1.0.0": {
@@ -26,6 +47,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "EasyTcp/4.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-I8O0wQLcFcNE+VV5A7qi6pJpsQEPVxUt+6VcI3b3mOwdO3vjo4Fa5uISTUdG7ltmtKG54pgqlhwBMUa8fkBqsA==",
+      "path": "easytcp/4.0.0",
+      "hashPath": "easytcp.4.0.0.nupkg.sha512"
+    },
+    "EasyTcp.Actions/4.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U81UaCMkAGztGZUT80Az7GXi3b51OugjHzX5lniTlvEMvm1YsZuFa8d3MnmeTqp9iZSPZCBbBc/oA/DpPOb7MQ==",
+      "path": "easytcp.actions/4.0.1",
+      "hashPath": "easytcp.actions.4.0.1.nupkg.sha512"
     },
     "ChessLogic/1.0.0": {
       "type": "project",
