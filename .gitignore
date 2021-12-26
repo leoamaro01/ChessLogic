@@ -1,8 +1,8 @@
 
-.vscode
+.vscode/
 
-ChessTest/obj
-ChessTest/bin
+ChessTest/obj/
+ChessTest/bin/
 
-ChessLogic/bin
-ChessLogic/obj
+ChessLogic/bin/
+ChessLogic/obj/

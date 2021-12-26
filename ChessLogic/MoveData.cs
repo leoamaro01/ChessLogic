@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using static PixelDashCore.ChessLogic.Board;
 
 namespace PixelDashCore.ChessLogic;
@@ -31,4 +32,22 @@ public struct MoveData
         this.promotion = promotion;
         this.specialTarget = specialTarget;
     }
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj != null && obj.GetType() == typeof(MoveData))
+        {
+            MoveData other = (MoveData)obj;
+            return algebraic == other.algebraic;
+        }
+        else
+            return base.Equals(obj);
+    }
+
+    public static bool operator ==(MoveData lh, MoveData rh)
+    => lh.Equals(rh);
+    public static bool operator !=(MoveData lh, MoveData rh)
+    => !lh.Equals(rh);
+
+    public override int GetHashCode() => algebraic.GetHashCode();
 }

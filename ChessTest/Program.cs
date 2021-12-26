@@ -10,18 +10,46 @@ class Program
     const int MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
     const int PORT = 48999;
     const string HEADER = "    A   B   C   D   E   F   G   H\n" +
-                          "  ┏━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┓";
-    const string FOOTER = "  ┗━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┛\n" +
+                          "  ┌───┬───┬───┬───┬───┬───┬───┬───┐";
+    const string FOOTER = "  └───┴───┴───┴───┴───┴───┴───┴───┘\n" +
                           "    A   B   C   D   E   F   G   H";
-    const string SEPARATOR = "  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫";
+    const string SEPARATOR = "  ├───┼───┼───┼───┼───┼───┼───┼───┤";
 
     static void Main()
     {
-        HostMultiplayer();
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("Main Menu:");
+            string[] options = { "Start Offline game.", "Host Online game.", "Join Online game." };
+            for (int i = 0; i < options.Length; i++)
+                Console.WriteLine($"{i} - {options[i]}");
+            System.Console.Write("> ");
+
+            string input = Console.ReadLine() ?? "";
+            int option = int.Parse(input);
+
+            switch (option)
+            {
+                case 0:
+                    SinglePlayer();
+                    break;
+                case 1:
+                    HostMultiplayer();
+                    break;
+                case 2:
+                    JoinMultiplayer();
+                    break;
+                default:
+                    System.Console.WriteLine("\nInvalid option\n");
+                    break; ;
+            }
+        }
     }
     static void JoinMultiplayer()
     {
-        string ip = "127.0.0.1"; // got through arcane magic.
+        System.Console.Write("Enter Host IP:\n> ");
+        string ip = Console.ReadLine() ?? "127.0.0.1";
         using var client = new EasyTcpClient();
         bool playing = false;
 
@@ -41,10 +69,11 @@ class Program
             else if (message.Data[0] == GeneralPacketCodes.MAKE_MOVE)
             {
                 whiteTurn = !whiteTurn;
-                string move = Board.CoordsToAlgebraic((message.Data[1], message.Data[2])) +
-                 Board.CoordsToAlgebraic((message.Data[3], message.Data[4])) +
-                 (message.Data.Length == 6 ?
-                    Board.PieceTypeToAlgebraicChar((PieceType)message.Data[5])
+                byte[] moveData = message.Data[1..^0];
+                string move = Board.CoordsToAlgebraic((moveData[0], moveData[1])) +
+                 Board.CoordsToAlgebraic((moveData[2], moveData[3])) +
+                 (moveData.Length == 5 ?
+                    Board.PieceTypeToAlgebraicChar((PieceType)moveData[4])
                      : "");
 
                 b.MakeMove(move);
@@ -52,12 +81,16 @@ class Program
         };
 
         if (!client.Connect(ip, PORT))
+        {
             Console.WriteLine("Failed to connect to " + ip);
-
+            return;
+        }
         while (true)
         {
+            Console.Clear();
             if (!playing)
             {
+                Console.WriteLine("Connecting...");
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
@@ -89,9 +122,11 @@ class Program
             if (whiteTurn == whitePlayer)
             {
                 MultiplayerTurn(client, b, whitePlayer);
+                whiteTurn = !whiteTurn;
             }
             else
             {
+                Console.WriteLine("Waiting for " + (!whitePlayer ? "white" : "black") + " player to play...");
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
@@ -128,10 +163,11 @@ class Program
             else if (message.Data[0] == GeneralPacketCodes.MAKE_MOVE)
             {
                 whiteTurn = !whiteTurn;
-                string move = Board.CoordsToAlgebraic((message.Data[1], message.Data[2])) +
-                 Board.CoordsToAlgebraic((message.Data[3], message.Data[4])) +
-                 (message.Data.Length == 6 ?
-                    Board.PieceTypeToAlgebraicChar((PieceType)message.Data[5])
+                byte[] moveData = message.Data[1..^0];
+                string move = Board.CoordsToAlgebraic((moveData[0], moveData[1])) +
+                 Board.CoordsToAlgebraic((moveData[2], moveData[3])) +
+                 (moveData.Length == 5 ?
+                    Board.PieceTypeToAlgebraicChar((PieceType)moveData[4])
                      : "");
 
                 b.MakeMove(move);
@@ -140,8 +176,12 @@ class Program
 
         while (true)
         {
+            Console.Clear();
+
             if (!playing || connectedClient == null)
             {
+                Console.WriteLine("Waiting for another player...");
+
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
@@ -173,9 +213,11 @@ class Program
             if (whiteTurn == whitePlayer)
             {
                 MultiplayerTurn(connectedClient, b, whitePlayer);
+                whiteTurn = !whiteTurn;
             }
             else
             {
+                Console.WriteLine("Waiting for " + (!whitePlayer ? "white" : "black") + " player to play...");
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
@@ -183,23 +225,24 @@ class Program
     }
     static void MultiplayerTurn(EasyTcpClient client, Board b, bool whitePlayer)
     {
-    SELECT_PIECE:
+    SELECT_MOVE:
         Console.WriteLine();
-        System.Console.Write("{0} Turn. Enter piece to move (ex. e4):\n> ",
+        System.Console.Write("{0} Turn. Enter a move to make (ex. e4e5) or piece to move (ex. e4):\n> ",
             whitePlayer ? "White" : "Black");
 
         string piece = (Console.ReadLine() ?? "").ToLower();
 
-        (int x, int y) coords = Board.AlgebraicToCoords(piece);
+        (int x, int y) coords = Board.AlgebraicToCoords(piece[0..2]);
+
         if (b.GetPieceAt(coords).isWhite != whitePlayer)
         {
             System.Console.WriteLine("You can't move that piece!");
-            goto SELECT_PIECE;
+            goto SELECT_MOVE;
         }
         else if (b.GetPieceAt(coords).pieceType == PieceType.None)
         {
             System.Console.WriteLine("There is no piece in that spot.");
-            goto SELECT_PIECE;
+            goto SELECT_MOVE;
         }
 
         var possibleMoves = b.GetPossibleMoves(coords);
@@ -207,32 +250,45 @@ class Program
         if (possibleMoves.Length == 0)
         {
             System.Console.WriteLine("That piece can't move!");
-            goto SELECT_PIECE;
+            goto SELECT_MOVE;
         }
 
-        System.Console.WriteLine();
+        MoveData moveMade;
 
-        System.Console.WriteLine("Select move to make:");
-
-        for (int i = 0; i < possibleMoves.Length; i++)
+        if (piece.Length >= 4 && possibleMoves.Any(d => d.algebraic == piece))
         {
-            System.Console.WriteLine($"{i} - {possibleMoves[i].algebraic}");
+            possibleMoves = possibleMoves.Where(d => d.algebraic == piece).ToArray();
+            b.MakeMove(possibleMoves[0]);
+            moveMade = possibleMoves[0];
+        }
+        else
+        {
+            System.Console.WriteLine();
+
+            System.Console.WriteLine("Select move to make:");
+
+            for (int i = 0; i < possibleMoves.Length; i++)
+            {
+                System.Console.WriteLine($"{i} - {possibleMoves[i].algebraic}");
+            }
+
+            System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
+            System.Console.Write("> ");
+
+            int move = int.Parse(Console.ReadLine() ?? $"{possibleMoves.Length}");
+
+            if (move >= possibleMoves.Length || move < 0)
+                goto SELECT_MOVE;
+
+            b.MakeMove(possibleMoves[move]);
+            moveMade = possibleMoves[move];
         }
 
-        System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
-        System.Console.Write("> ");
-
-        int move = int.Parse(Console.ReadLine() ?? $"{possibleMoves.Length}");
-
-        if (move >= possibleMoves.Length || move < 0)
-            goto SELECT_PIECE;
-
-        b.MakeMove(possibleMoves[move]);
-        (int moveFromX, int moveFromY) = possibleMoves[move].from;
-        (int moveToX, int moveToY) = possibleMoves[move].to;
+        (int moveFromX, int moveFromY) = moveMade.from;
+        (int moveToX, int moveToY) = moveMade.to;
 
         byte[] data;
-        if (possibleMoves[move].promotion == PieceType.None)
+        if (moveMade.promotion == PieceType.None)
         {
             data = new byte[]
            {
@@ -248,7 +304,7 @@ class Program
                 GeneralPacketCodes.MAKE_MOVE,
                 (byte)moveFromX, (byte)moveFromY,
                 (byte)moveToX,(byte)moveToY,
-                (byte)possibleMoves[move].promotion
+                (byte)moveMade.promotion
            };
         }
 
@@ -286,9 +342,9 @@ class Program
                 else break;
             }
 
-        SELECT_PIECE:
+        SELECT_MOVE:
             Console.WriteLine();
-            System.Console.Write("{0} Turn. Enter piece to move (ex. e4) or write \"UNDO\" to undo:\n> ",
+            System.Console.Write("{0} Turn. Enter a move to make (ex. e4e5), a piece to move (ex. e4) or write \"UNDO\" to undo:\n> ",
                 whiteTurn ? "White" : "Black");
 
             string piece = (Console.ReadLine() ?? "").ToLower();
@@ -299,16 +355,17 @@ class Program
                 continue;
             }
 
-            (int x, int y) coords = Board.AlgebraicToCoords(piece);
+            (int x, int y) coords = Board.AlgebraicToCoords(piece[0..2]);
+
             if (b.GetPieceAt(coords).isWhite != whiteTurn)
             {
                 System.Console.WriteLine("You can't move that piece!");
-                goto SELECT_PIECE;
+                goto SELECT_MOVE;
             }
             else if (b.GetPieceAt(coords).pieceType == PieceType.None)
             {
                 System.Console.WriteLine("There is no piece in that spot.");
-                goto SELECT_PIECE;
+                goto SELECT_MOVE;
             }
 
             var possibleMoves = b.GetPossibleMoves(coords);
@@ -316,37 +373,48 @@ class Program
             if (possibleMoves.Length == 0)
             {
                 System.Console.WriteLine("That piece can't move!");
-                goto SELECT_PIECE;
+                goto SELECT_MOVE;
             }
 
-            System.Console.WriteLine();
-
-            System.Console.WriteLine("Select move to make:");
-
-            for (int i = 0; i < possibleMoves.Length; i++)
+            if (piece.Length >= 4 && possibleMoves.Any(d => d.algebraic == piece))
             {
-                System.Console.WriteLine($"{i} - {possibleMoves[i].algebraic}");
+                possibleMoves = possibleMoves.Where(d => d.algebraic == piece).ToArray();
+                b.MakeMove(possibleMoves[0]);
             }
+            else
+            {
+                System.Console.WriteLine();
 
-            System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
-            System.Console.Write("> ");
+                System.Console.WriteLine("Select move to make:");
 
-            int move = int.Parse(Console.ReadLine() ?? $"{possibleMoves.Length}");
+                for (int i = 0; i < possibleMoves.Length; i++)
+                {
+                    System.Console.WriteLine($"{i} - {possibleMoves[i].algebraic}");
+                }
 
-            if (move >= possibleMoves.Length || move < 0)
-                goto SELECT_PIECE;
+                System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
+                System.Console.Write("> ");
 
-            b.MakeMove(possibleMoves[move]);
+                int move = int.Parse(Console.ReadLine() ?? $"{possibleMoves.Length}");
+
+                if (move >= possibleMoves.Length || move < 0)
+                    goto SELECT_MOVE;
+
+                b.MakeMove(possibleMoves[move]);
+            }
 
             whiteTurn = !whiteTurn;
         }
     }
     const ConsoleColor whiteColor = ConsoleColor.White,
-                        blackColor = ConsoleColor.DarkGray;
+                        blackColor = ConsoleColor.Black,
+                        backgroundColor = ConsoleColor.DarkGray;
     public static void RenderBoard(Board board)
     {
         Console.Clear();
         Console.WriteLine();
+
+        Console.BackgroundColor = backgroundColor;
 
         ConsoleColor col = Console.ForegroundColor;
         Console.WriteLine(HEADER);
@@ -356,7 +424,7 @@ class Program
             {
                 Console.WriteLine(SEPARATOR);
             }
-            Console.Write($"{y + 1} ┃");
+            Console.Write($"{y + 1} │");
             for (int x = 0; x < 8; x++)
             {
                 Piece piece = board.GetPieceAt((x, y));
@@ -366,7 +434,7 @@ class Program
                 Board.PieceTypeToAlgebraicChar(piece.pieceType).ToString().ToUpper());
 
                 Console.ForegroundColor = col;
-                Console.Write("┃");
+                Console.Write("│");
             }
             Console.Write($" {y + 1}");
             Console.WriteLine();
