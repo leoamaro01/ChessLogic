@@ -56,6 +56,7 @@ class Program
         Board b = new();
         bool whiteTurn = true;
         bool whitePlayer = false;
+        bool doNotUpdate = false;
 
         client.OnDataReceive += (sender, message) =>
         {
@@ -77,6 +78,7 @@ class Program
                      : "");
 
                 b.MakeMove(move);
+                doNotUpdate = false;
             }
         };
 
@@ -85,38 +87,44 @@ class Program
             Console.WriteLine("Failed to connect to " + ip);
             return;
         }
+        Console.WriteLine("Connecting...");
+
         while (true)
         {
-            Console.Clear();
             if (!playing)
             {
-                Console.WriteLine("Connecting...");
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
 
-            RenderBoard(b);
+            bool _update = !doNotUpdate;
+            doNotUpdate = false;
 
-            if (b.IsInCheckMate(whiteTurn))
+            if (_update)
             {
-                System.Console.WriteLine("Checkmate! " +
-                    (!whiteTurn ? "White" : "Black") + " wins!");
-                System.Console.WriteLine("Press P to play again!");
-                if (Console.ReadKey(true).Key == ConsoleKey.P)
-                    return; // TODO: Replaying.
-                else break;
-            }
-            else if (b.IsInCheck(whiteTurn))
-            {
-                System.Console.WriteLine("Check!");
-            }
-            else if (b.IsInStalemate(whiteTurn))
-            {
-                System.Console.WriteLine("Stalemate! IT'S A DRAW!");
-                System.Console.WriteLine("Press P to play again!");
-                if (Console.ReadKey(true).Key == ConsoleKey.P)
-                    return; // TODO: Replaying.
-                else break;
+                RenderBoard(b);
+
+                if (b.IsInCheckMate(whiteTurn))
+                {
+                    System.Console.WriteLine("Checkmate! " +
+                        (!whiteTurn ? "White" : "Black") + " wins!");
+                    System.Console.WriteLine("Press P to play again!");
+                    if (Console.ReadKey(true).Key == ConsoleKey.P)
+                        return; // TODO: Replaying.
+                    else break;
+                }
+                else if (b.IsInCheck(whiteTurn))
+                {
+                    System.Console.WriteLine("Check!");
+                }
+                else if (b.IsInStalemate(whiteTurn))
+                {
+                    System.Console.WriteLine("Stalemate! IT'S A DRAW!");
+                    System.Console.WriteLine("Press P to play again!");
+                    if (Console.ReadKey(true).Key == ConsoleKey.P)
+                        return; // TODO: Replaying.
+                    else break;
+                }
             }
 
             if (whiteTurn == whitePlayer)
@@ -126,7 +134,10 @@ class Program
             }
             else
             {
-                Console.WriteLine("Waiting for " + (!whitePlayer ? "white" : "black") + " player to play...");
+                if (_update)
+                    Console.WriteLine("Waiting for " + (!whitePlayer ? "white" : "black") + " player to play...");
+
+                doNotUpdate = true;
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
@@ -138,10 +149,13 @@ class Program
         EasyTcpClient? connectedClient = null;
         bool listening = true;
 
+        Console.WriteLine("Waiting for another player...");
+
         Board b = new();
         bool whitePlayer = new Random().Next(0, 2) == 0;
         bool playing = false;
         bool whiteTurn = true;
+        bool doNotUpdate = false;
 
         server.OnConnect += (sender, client) =>
         {
@@ -171,43 +185,45 @@ class Program
                      : "");
 
                 b.MakeMove(move);
+                doNotUpdate = false;
             }
         };
-
         while (true)
         {
-            Console.Clear();
-
             if (!playing || connectedClient == null)
             {
-                Console.WriteLine("Waiting for another player...");
-
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
 
-            RenderBoard(b);
+            bool _update = !doNotUpdate;
+            doNotUpdate = false;
 
-            if (b.IsInCheckMate(whiteTurn))
+            if (_update)
             {
-                System.Console.WriteLine("Checkmate! " +
-                    (!whiteTurn ? "White" : "Black") + " wins!");
-                System.Console.WriteLine("Press P to play again!");
-                if (Console.ReadKey(true).Key == ConsoleKey.P)
-                    return; // TODO: Replaying.
-                else break;
-            }
-            else if (b.IsInCheck(whiteTurn))
-            {
-                System.Console.WriteLine("Check!");
-            }
-            else if (b.IsInStalemate(whiteTurn))
-            {
-                System.Console.WriteLine("Stalemate! IT'S A DRAW!");
-                System.Console.WriteLine("Press P to play again!");
-                if (Console.ReadKey(true).Key == ConsoleKey.P)
-                    return; // TODO: Replaying.
-                else break;
+                RenderBoard(b);
+
+                if (b.IsInCheckMate(whiteTurn))
+                {
+                    System.Console.WriteLine("Checkmate! " +
+                        (!whiteTurn ? "White" : "Black") + " wins!");
+                    System.Console.WriteLine("Press P to play again!");
+                    if (Console.ReadKey(true).Key == ConsoleKey.P)
+                        return; // TODO: Replaying.
+                    else break;
+                }
+                else if (b.IsInCheck(whiteTurn))
+                {
+                    System.Console.WriteLine("Check!");
+                }
+                else if (b.IsInStalemate(whiteTurn))
+                {
+                    System.Console.WriteLine("Stalemate! IT'S A DRAW!");
+                    System.Console.WriteLine("Press P to play again!");
+                    if (Console.ReadKey(true).Key == ConsoleKey.P)
+                        return; // TODO: Replaying.
+                    else break;
+                }
             }
 
             if (whiteTurn == whitePlayer)
@@ -217,7 +233,10 @@ class Program
             }
             else
             {
-                Console.WriteLine("Waiting for " + (!whitePlayer ? "white" : "black") + " player to play...");
+                if (_update)
+                    Console.WriteLine("Waiting for " + (!whitePlayer ? "white" : "black") + " player to play...");
+
+                doNotUpdate = true;
                 Thread.Sleep(MS_PER_UPDATE);
                 continue;
             }
