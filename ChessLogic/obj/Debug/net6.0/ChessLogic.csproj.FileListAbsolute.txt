@@ -22,3 +22,15 @@
 /home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.dll
 /home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ref/ChessLogic.dll
 /home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/Debug/net6.0/ChessLogic.pdb
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\bin\Debug\net6.0\ChessLogic.deps.json
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\bin\Debug\net6.0\ChessLogic.dll
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\bin\Debug\net6.0\ref\ChessLogic.dll
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\bin\Debug\net6.0\ChessLogic.pdb
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ChessLogic.csproj.AssemblyReference.cache
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ChessLogic.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ChessLogic.AssemblyInfoInputs.cache
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ChessLogic.AssemblyInfo.cs
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ChessLogic.csproj.CoreCompileInputs.cache
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ChessLogic.dll
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ref\ChessLogic.dll
+C:\Users\Leo\source\repos\ChessLogic\ChessLogic\ChessLogic\obj\Debug\net6.0\ChessLogic.pdb

@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj": {}
+    "C:\\Users\\Leo\\source\\repos\\ChessLogic\\ChessLogic\\ChessLogic\\ChessLogic.csproj": {}
   },
   "projects": {
-    "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj": {
+    "C:\\Users\\Leo\\source\\repos\\ChessLogic\\ChessLogic\\ChessLogic\\ChessLogic.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj",
+        "projectUniqueName": "C:\\Users\\Leo\\source\\repos\\ChessLogic\\ChessLogic\\ChessLogic\\ChessLogic.csproj",
         "projectName": "ChessLogic",
-        "projectPath": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/ChessLogic.csproj",
-        "packagesPath": "/home/leoamaro01/.nuget/packages/",
-        "outputPath": "/home/leoamaro01/Documents/repos/ChessLogic/ChessLogic/obj/",
+        "projectPath": "C:\\Users\\Leo\\source\\repos\\ChessLogic\\ChessLogic\\ChessLogic\\ChessLogic.csproj",
+        "packagesPath": "C:\\Users\\Leo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Leo\\source\\repos\\ChessLogic\\ChessLogic\\ChessLogic\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "/home/leoamaro01/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Leo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\ini-parser": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -52,7 +58,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/6.0.100/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.101\\RuntimeIdentifierGraph.json"
         }
       }
     }
