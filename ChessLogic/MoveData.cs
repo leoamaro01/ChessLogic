@@ -11,26 +11,65 @@ public struct MoveData
     public (int x, int y)? specialTarget;
     public PieceType promotion;
 
+    // This is used for separating library-defined moves from user-defined ones.
+    internal bool _safe = false;
+
     public MoveData(string algebraic, (int x, int y) from,
-    (int x, int y) to, (int x, int y)? specialTarget = null, PieceType promotion = PieceType.None)
+    (int x, int y) to)
     {
         this.algebraic = algebraic;
         this.from = from;
         this.to = to;
-        this.promotion = promotion;
-        this.specialTarget = specialTarget;
+        this.promotion = PieceType.None;
+        this.specialTarget = null;
     }
-    public MoveData((int x, int y) from, (int x, int y) to,
-    (int x, int y)? specialTarget = null, PieceType promotion = PieceType.None)
+    public MoveData((int x, int y) from, (int x, int y) to)
     {
         this.algebraic = CoordsToAlgebraic(from) + CoordsToAlgebraic(to);
-        if (promotion != PieceType.None)
-            this.algebraic += PieceTypeToAlgebraicChar(promotion);
+        this.from = from;
+        this.to = to;
+        this.promotion = PieceType.None;
+        this.specialTarget = null;
+    }
+    public MoveData((int x, int y) from, (int x, int y) to,
+    (int x, int y) specialTarget)
+    {
+        this.algebraic = CoordsToAlgebraic(from) + CoordsToAlgebraic(to);
+
+        this.from = from;
+        this.to = to;
+        this.promotion = PieceType.None;
+        this.specialTarget = specialTarget;
+    }
+    public MoveData(string algebraic, (int x, int y) from, (int x, int y) to,
+    PieceType promotion)
+    {
+        this.algebraic = algebraic;
 
         this.from = from;
         this.to = to;
         this.promotion = promotion;
+        this.specialTarget = null;
+    }
+    public MoveData(string algebraic, (int x, int y) from, (int x, int y) to,
+    (int x, int y) specialTarget)
+    {
+        this.algebraic = algebraic;
+
+        this.from = from;
+        this.to = to;
+        this.promotion = PieceType.None;
         this.specialTarget = specialTarget;
+    }
+    public MoveData((int x, int y) from, (int x, int y) to,
+    PieceType promotion)
+    {
+        this.algebraic = CoordsToAlgebraic(from) + CoordsToAlgebraic(to);
+
+        this.from = from;
+        this.to = to;
+        this.promotion = promotion;
+        this.specialTarget = null;
     }
 
     public override bool Equals([NotNullWhen(true)] object? obj)
