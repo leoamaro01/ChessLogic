@@ -1,8 +1,11 @@
-﻿using EasyTcp4;
+﻿using System.Net.Sockets;
+using System.Net.Mail;
+using System.Net;
+using EasyTcp4;
 using EasyTcp4.ServerUtils;
 using EasyTcp4.ClientUtils;
-using System.Threading;
-using System.Net;
+using System.Text.RegularExpressions;
+
 namespace PixelDashCore.ChessLogic.Tests;
 class Program
 {
@@ -20,14 +23,20 @@ class Program
         while (true)
         {
             Console.Clear();
+            System.Console.WriteLine("♟️ Welcome to ChessLogic Test! ♟️");
+
             Console.WriteLine("Main Menu:");
-            string[] options = { "Start Offline game.", "Host Online game.", "Join Online game." };
+            string[] options = { "Start Offline game. 🖥️", "Host Online game. 🌐➡️🖥️", "Join Online game. 🌐⬅️💻" };
             for (int i = 0; i < options.Length; i++)
                 Console.WriteLine($"{i} - {options[i]}");
             System.Console.Write("> ");
 
-            string input = Console.ReadLine() ?? "";
-            int option = int.Parse(input);
+            if (!int.TryParse(Console.ReadLine(), out int option))
+            {
+                System.Console.WriteLine("\nInvalid option, choose a number from the list\n");
+                Thread.Sleep(1000);
+                continue;
+            }
 
             switch (option)
             {
@@ -41,56 +50,94 @@ class Program
                     JoinMultiplayer();
                     break;
                 default:
-                    System.Console.WriteLine("\nInvalid option\n");
-                    break; ;
+                    System.Console.WriteLine("\nInvalid option, choose a number from the list\n");
+                    Thread.Sleep(1000);
+                    continue;
             }
         }
     }
     static void JoinMultiplayer()
     {
-        System.Console.Write("Enter Host IP:\n> ");
-        string ip = Console.ReadLine() ?? "127.0.0.1";
+        Console.Clear();
+        System.Console.WriteLine("🌐 Multiplayer Joining Menu, enter `exit` in any input to return to the Main Menu");
+
         using var client = new EasyTcpClient();
         bool playing = false;
+        bool inGame = true;
 
         Board b = new();
         bool whiteTurn = true;
         bool whitePlayer = false;
         bool doNotUpdate = false;
 
-        client.OnDataReceive += (sender, message) =>
+        var disconnectAction = () =>
         {
-            if (message.Data[0] == ServerPacketCodes.WELCOME)
+            Console.WriteLine("Exiting...");
+            client.Dispose();
+            inGame = false;
+        };
+        client.OnDataReceive += (sender, message) =>
             {
-                whitePlayer = message.Data[1] == 0;
-                client.Send(new byte[1] { ClientPacketCodes.WELCOME_RECEIVED });
+                if (message.Data[0] == ServerPacketCodes.WELCOME)
+                {
+                    System.Console.WriteLine("Connected to server!");
 
-                playing = true;
-            }
-            else if (message.Data[0] == GeneralPacketCodes.MAKE_MOVE)
-            {
-                whiteTurn = !whiteTurn;
-                byte[] moveData = message.Data[1..^0];
-                string move = Board.CoordsToAlgebraic((moveData[0], moveData[1])) +
-                 Board.CoordsToAlgebraic((moveData[2], moveData[3])) +
-                 (moveData.Length == 5 ?
-                    Board.PieceTypeToAlgebraicChar((PieceType)moveData[4])
-                     : "");
+                    whitePlayer = message.Data[1] == 0;
+                    client.Send(new byte[1] { ClientPacketCodes.WELCOME_RECEIVED });
 
-                b.MakeMove(move);
-                doNotUpdate = false;
-            }
+                    playing = true;
+                }
+                else if (message.Data[0] == GeneralPacketCodes.MAKE_MOVE)
+                {
+                    whiteTurn = !whiteTurn;
+                    byte[] moveData = message.Data[1..^0];
+                    string move = Board.CoordsToAlgebraic((moveData[0], moveData[1])) +
+                                    Board.CoordsToAlgebraic((moveData[2], moveData[3])) +
+                                    (moveData.Length == 5 ?
+                                        Board.PieceTypeToAlgebraicChar((PieceType)moveData[4])
+                                        : "");
+
+                    b.MakeMove(move);
+                    doNotUpdate = false;
+                }
+            };
+        client.OnDisconnect += (sender, message) =>
+        {
+            if (!inGame)
+                return;
+
+            Console.WriteLine($"Disconnected from server...\nReturning to Main Menu in 3 seconds...");
+            Thread.Sleep(3000);
+            disconnectAction();
         };
 
+    HOST_IP:
+        System.Console.Write("Enter Host IP:\n> ");
+        string ip = Console.ReadLine() ?? "";
+        while (!Regex.IsMatch(ip, @"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"))
+        {
+            if (ip == "exit")
+            {
+                System.Console.WriteLine("Exiting...");
+                client.Dispose();
+                return;
+            }
+
+            System.Console.WriteLine("That is not a valid IP, it should be in IPv4 format (ex. 192.168.1.100).");
+            Console.Write("Enter a valid IP:\n> ");
+            ip = Console.ReadLine() ?? "";
+        }
+        Console.WriteLine("Connecting...");
         if (!client.Connect(ip, PORT))
         {
             Console.WriteLine("Failed to connect to " + ip);
-            return;
+            goto HOST_IP;
         }
-        Console.WriteLine("Connecting...");
 
         while (true)
         {
+            if (!inGame)
+                return;
             if (!playing)
             {
                 Thread.Sleep(MS_PER_UPDATE);
@@ -108,28 +155,34 @@ class Program
                 {
                     System.Console.WriteLine("Checkmate! " +
                         (!whiteTurn ? "White" : "Black") + " wins!");
-                    System.Console.WriteLine("Press P to play again!");
-                    if (Console.ReadKey(true).Key == ConsoleKey.P)
-                        return; // TODO: Replaying.
-                    else break;
+                    System.Console.WriteLine("Returning to Main Menu...");
+
+                    disconnectAction();
+                    continue;
                 }
                 else if (b.IsInCheck(whiteTurn))
                 {
-                    System.Console.WriteLine("Check!");
+                    System.Console.WriteLine((whiteTurn ? "White" : "Black") + "is in check!");
                 }
                 else if (b.IsInStalemate(whiteTurn))
                 {
-                    System.Console.WriteLine("Stalemate! IT'S A DRAW!");
-                    System.Console.WriteLine("Press P to play again!");
-                    if (Console.ReadKey(true).Key == ConsoleKey.P)
-                        return; // TODO: Replaying.
-                    else break;
+                    System.Console.WriteLine((whiteTurn ? "White" : "Black") + "Stalemate! IT'S A DRAW!");
+
+                    System.Console.WriteLine("Returning to Main Menu...");
+
+                    disconnectAction();
+                    continue;
                 }
             }
 
             if (whiteTurn == whitePlayer)
             {
-                MultiplayerTurn(client, b, whitePlayer);
+                MultiplayerTurn(client, b, whitePlayer, out bool exit);
+                if (exit)
+                {
+                    disconnectAction();
+                    continue;
+                }
                 whiteTurn = !whiteTurn;
             }
             else
@@ -148,7 +201,15 @@ class Program
         using var server = new EasyTcpServer().Start(PORT);
         EasyTcpClient? connectedClient = null;
         bool listening = true;
+        bool inGame = true;
 
+        IPEndPoint? remoteEndPoint = ((IPEndPoint?)server.BaseSocket.RemoteEndPoint);
+        IPEndPoint? localEndPoint = ((IPEndPoint?)server.BaseSocket.LocalEndPoint);
+
+        if (remoteEndPoint != null)
+            Console.WriteLine("Remote IP Address: " + IPAddress.Parse(remoteEndPoint.Address.ToString()));
+        if (localEndPoint != null)
+            Console.WriteLine("Local IP Address: " + IPAddress.Parse(localEndPoint.Address.ToString()));
         Console.WriteLine("Waiting for another player...");
 
         Board b = new();
@@ -157,11 +218,18 @@ class Program
         bool whiteTurn = true;
         bool doNotUpdate = false;
 
+        var disconnectAction = () =>
+        {
+            Console.WriteLine("Exiting...");
+
+            server.Dispose();
+            connectedClient?.Dispose();
+            inGame = false;
+        };
         server.OnConnect += (sender, client) =>
         {
             if (listening)
             {
-                listening = false;
                 connectedClient = client;
                 client.Send(new byte[2] { ServerPacketCodes.WELCOME, (byte)(!whitePlayer ? 0 : 1) });
             }
@@ -172,6 +240,8 @@ class Program
         {
             if (message.Data[0] == ClientPacketCodes.WELCOME_RECEIVED)
             {
+                System.Console.WriteLine("Connected!");
+                listening = false;
                 playing = true;
             }
             else if (message.Data[0] == GeneralPacketCodes.MAKE_MOVE)
@@ -179,17 +249,29 @@ class Program
                 whiteTurn = !whiteTurn;
                 byte[] moveData = message.Data[1..^0];
                 string move = Board.CoordsToAlgebraic((moveData[0], moveData[1])) +
-                 Board.CoordsToAlgebraic((moveData[2], moveData[3])) +
-                 (moveData.Length == 5 ?
-                    Board.PieceTypeToAlgebraicChar((PieceType)moveData[4])
-                     : "");
+                                Board.CoordsToAlgebraic((moveData[2], moveData[3])) +
+                                (moveData.Length == 5 ?
+                                    Board.PieceTypeToAlgebraicChar((PieceType)moveData[4])
+                                    : "");
 
                 b.MakeMove(move);
                 doNotUpdate = false;
             }
         };
+        server.OnDisconnect += (sender, message) =>
+        {
+            if (!inGame)
+                return;
+
+            Console.WriteLine($"Client disconnected...\nReturning to Main Menu in 3 seconds...");
+            Thread.Sleep(3000);
+            disconnectAction();
+        };
+
         while (true)
         {
+            if (!inGame)
+                return;
             if (!playing || connectedClient == null)
             {
                 Thread.Sleep(MS_PER_UPDATE);
@@ -207,28 +289,34 @@ class Program
                 {
                     System.Console.WriteLine("Checkmate! " +
                         (!whiteTurn ? "White" : "Black") + " wins!");
-                    System.Console.WriteLine("Press P to play again!");
-                    if (Console.ReadKey(true).Key == ConsoleKey.P)
-                        return; // TODO: Replaying.
-                    else break;
+                    System.Console.WriteLine("Returning to Main Menu...");
+
+                    disconnectAction();
+                    continue;
                 }
                 else if (b.IsInCheck(whiteTurn))
                 {
-                    System.Console.WriteLine("Check!");
+                    System.Console.WriteLine((whiteTurn ? "White" : "Black") + "is in check!");
                 }
                 else if (b.IsInStalemate(whiteTurn))
                 {
-                    System.Console.WriteLine("Stalemate! IT'S A DRAW!");
-                    System.Console.WriteLine("Press P to play again!");
-                    if (Console.ReadKey(true).Key == ConsoleKey.P)
-                        return; // TODO: Replaying.
-                    else break;
+                    System.Console.WriteLine((whiteTurn ? "White" : "Black") + "Stalemate! IT'S A DRAW!");
+
+                    System.Console.WriteLine("Returning to Main Menu...");
+
+                    disconnectAction();
+                    continue;
                 }
             }
 
             if (whiteTurn == whitePlayer)
             {
-                MultiplayerTurn(connectedClient, b, whitePlayer);
+                MultiplayerTurn(connectedClient, b, whitePlayer, out bool exit);
+                if (exit)
+                {
+                    disconnectAction();
+                    continue;
+                }
                 whiteTurn = !whiteTurn;
             }
             else
@@ -242,16 +330,42 @@ class Program
             }
         }
     }
-    static void MultiplayerTurn(EasyTcpClient client, Board b, bool whitePlayer)
+    static void MultiplayerTurn(EasyTcpClient client, Board b, bool whitePlayer, out bool exit)
     {
+        exit = false;
+
     SELECT_MOVE:
         Console.WriteLine();
         System.Console.Write("{0} Turn. Enter a move to make (ex. e4e5) or piece to move (ex. e4):\n> ",
             whitePlayer ? "White" : "Black");
 
-        string piece = (Console.ReadLine() ?? "").ToLower();
+        string input = Console.ReadLine() ?? "";
+        MoveData data;
 
-        (int x, int y) coords = Board.AlgebraicToCoords(piece[0..2]);
+        while (true)
+        {
+            if (input == "exit")
+            {
+                exit = true;
+                return;
+            }
+
+            try
+            {
+                data = Board.AlgebraicToMoveData(input);
+            }
+            catch
+            {
+                System.Console.WriteLine("Invalid input.");
+                System.Console.Write("Enter a valid algebraic expression:\n> ");
+                input = Console.ReadLine() ?? "";
+                continue;
+            }
+
+            break;
+        }
+
+        (int x, int y) coords = data.from;
 
         if (b.GetPieceAt(coords).isWhite != whitePlayer)
         {
@@ -274,9 +388,9 @@ class Program
 
         MoveData moveMade;
 
-        if (piece.Length >= 4 && possibleMoves.Any(d => d.algebraic == piece))
+        if (input.Length >= 4 && possibleMoves.Any(d => d.algebraic == input))
         {
-            possibleMoves = possibleMoves.Where(d => d.algebraic == piece).ToArray();
+            possibleMoves = possibleMoves.Where(d => d.algebraic == input).ToArray();
             b.MakeMove(possibleMoves[0]);
             moveMade = possibleMoves[0];
         }
@@ -294,7 +408,20 @@ class Program
             System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
             System.Console.Write("> ");
 
-            int move = int.Parse(Console.ReadLine() ?? $"{possibleMoves.Length}");
+            string moveInput = Console.ReadLine() ?? "";
+            while (!int.TryParse(moveInput, out int option))
+            {
+                if (moveInput == "exit")
+                {
+                    exit = true;
+                    return;
+                }
+
+                System.Console.Write("Invalid Input. Select an option from the previous list:\n> ");
+                moveInput = Console.ReadLine() ?? "";
+            }
+
+            int move = int.Parse(moveInput);
 
             if (move >= possibleMoves.Length || move < 0)
                 goto SELECT_MOVE;
@@ -306,10 +433,10 @@ class Program
         (int moveFromX, int moveFromY) = moveMade.from;
         (int moveToX, int moveToY) = moveMade.to;
 
-        byte[] data;
+        byte[] bufferData;
         if (moveMade.promotion == PieceType.None)
         {
-            data = new byte[]
+            bufferData = new byte[]
            {
                 GeneralPacketCodes.MAKE_MOVE,
                 (byte)moveFromX, (byte)moveFromY,
@@ -318,7 +445,7 @@ class Program
         }
         else
         {
-            data = new byte[]
+            bufferData = new byte[]
            {
                 GeneralPacketCodes.MAKE_MOVE,
                 (byte)moveFromX, (byte)moveFromY,
@@ -327,7 +454,7 @@ class Program
            };
         }
 
-        client.Send(data);
+        client.Send(bufferData);
     }
     static void SinglePlayer()
     {
@@ -354,27 +481,46 @@ class Program
             }
             else if (b.IsInStalemate(whiteTurn))
             {
-                System.Console.WriteLine("Stalemate! IT'S A DRAW!");
+                System.Console.WriteLine((whiteTurn ? "White" : "Black") + "Stalemate! IT'S A DRAW!");
                 System.Console.WriteLine("Press P to play again!");
                 if (Console.ReadKey(true).Key == ConsoleKey.P)
                     goto NEWGAME;
                 else break;
             }
 
-        SELECT_MOVE:
             Console.WriteLine();
+
+            Console.WriteLine($"Write \"exit\" in any input to return to the Main Menu.");
+
+        SELECT_MOVE:
+            System.Console.WriteLine();
             System.Console.Write("{0} Turn. Enter a move to make (ex. e4e5), a piece to move (ex. e4) or write \"UNDO\" to undo:\n> ",
                 whiteTurn ? "White" : "Black");
 
-            string piece = (Console.ReadLine() ?? "").ToLower();
-            if (piece == "undo")
+            string input = (Console.ReadLine() ?? "").ToLower();
+            if (input == "undo")
             {
                 b.UndoMove();
                 whiteTurn = !whiteTurn;
                 continue;
             }
+            else if (input == "exit")
+            {
+                Console.WriteLine($"Returning to Main Menu...");
+                Thread.Sleep(500);
+                return;
+            }
+            try
+            {
+                MoveData tryData = Board.AlgebraicToMoveData(input);
+            }
+            catch
+            {
+                Console.WriteLine("Invalid input.");
+                goto SELECT_MOVE;
+            }
 
-            (int x, int y) coords = Board.AlgebraicToCoords(piece[0..2]);
+            (int x, int y) coords = Board.AlgebraicPairToCoords(input[0..2]);
 
             if (b.GetPieceAt(coords).isWhite != whiteTurn)
             {
@@ -395,9 +541,9 @@ class Program
                 goto SELECT_MOVE;
             }
 
-            if (piece.Length >= 4 && possibleMoves.Any(d => d.algebraic == piece))
+            if (input.Length >= 4 && possibleMoves.Any(d => d.algebraic == input))
             {
-                possibleMoves = possibleMoves.Where(d => d.algebraic == piece).ToArray();
+                possibleMoves = possibleMoves.Where(d => d.algebraic == input).ToArray();
                 b.MakeMove(possibleMoves[0]);
             }
             else
@@ -414,9 +560,11 @@ class Program
                 System.Console.WriteLine($"{possibleMoves.Length} - Select another piece.");
                 System.Console.Write("> ");
 
-                int move = int.Parse(Console.ReadLine() ?? $"{possibleMoves.Length}");
+                int move;
+                while (!int.TryParse(Console.ReadLine(), out move) || move > possibleMoves.Length || move < 0)
+                    Console.Write("Invalid option, choose one from the list above\n> ");
 
-                if (move >= possibleMoves.Length || move < 0)
+                if (move == possibleMoves.Length)
                     goto SELECT_MOVE;
 
                 b.MakeMove(possibleMoves[move]);
