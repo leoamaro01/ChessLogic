@@ -5,19 +5,19 @@ namespace PixelDashCore.ChessLogic;
 
 public struct MoveData
 {
-    public string algebraic;
-    public (int x, int y) from;
-    public (int x, int y) to;
-    public (int x, int y)? _specialTarget;
-    public PieceType promotion;
+    public readonly string algebraic;
+    public readonly (int x, int y) from;
+    public readonly (int x, int y) to;
+    public readonly PieceType promotion;
 
     // This is used for separating library-defined moves from user-defined ones.
     internal bool _safe = false;
+    internal (int x, int y)? _specialTarget;
 
     public MoveData(string algebraic, (int x, int y) from,
     (int x, int y) to)
     {
-        this.algebraic = algebraic;
+        this.algebraic = algebraic.ToLower();
         this.from = from;
         this.to = to;
         this.promotion = PieceType.None;
@@ -44,7 +44,7 @@ public struct MoveData
     public MoveData(string algebraic, (int x, int y) from, (int x, int y) to,
     PieceType promotion)
     {
-        this.algebraic = algebraic;
+        this.algebraic = algebraic.ToLower();
 
         this.from = from;
         this.to = to;
@@ -54,7 +54,7 @@ public struct MoveData
     internal MoveData(string algebraic, (int x, int y) from, (int x, int y) to,
     (int x, int y) specialTarget)
     {
-        this.algebraic = algebraic;
+        this.algebraic = algebraic.ToLower();
 
         this.from = from;
         this.to = to;
